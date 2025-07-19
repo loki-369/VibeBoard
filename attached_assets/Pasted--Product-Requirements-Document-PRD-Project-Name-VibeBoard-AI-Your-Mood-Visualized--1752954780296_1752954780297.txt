@@ -1,0 +1,144 @@
+**Product Requirements Document (PRD)**
+
+**Project Name:** VibeBoard AI – Your Mood, Visualized
+
+---
+
+## 1. Executive Summary
+
+**What:** An AI‑powered web application that transforms a user’s mood input into a personalized digital moodboard, combining images, AI‑generated quotes, a custom color palette, and an embedded Spotify playlist.
+
+**Why:** To provide a shareable, aesthetically pleasing, emotionally resonant experience that stands out in hackathons and appeals to users seeking creative self‑expression.
+
+**Who:** College students, creative enthusiasts, mental‑wellness seekers, social media users.
+
+---
+
+## 2. Goals & Success Metrics
+
+| Goal                                | Metric                       | Target            |
+| ----------------------------------- | ---------------------------- | ----------------- |
+| Engage users with unique moodboards | Daily active users (DAU)     | ≥ 500/day         |
+| Drive social sharing & virality     | Shares per board             | ≥ 100/day total   |
+| Showcase design & technical prowess | Hackathon judging score      | Top 3 placement   |
+| Ensure performance & reliability    | Page load < 3s; Uptime ≥ 99% | ✅ Achieve targets |
+
+---
+
+## 3. Stakeholders
+
+* **Product Lead:** Ishal Ahammed (Campus Lead, TinkerHub)
+* **Design Lead:** (Student Designer)
+* **Frontend Dev:** (You or assigned team)
+* **Backend/Integration:** (You or assigned team)
+* **Mentors/Judges:** Hackathon reviewers
+
+---
+
+## 4. User Personas
+
+1. **Creative Casey** (20, College Student)
+
+   * Wants a quick, beautiful way to express mood on socials.
+   * Values design, shareability.
+
+2. **Wellness Willow** (22, Graduate Student)
+
+   * Uses mood tracking for self‑care.
+   * Appreciates journaling & visualizations.
+
+3. **Hackathon Hannah** (19, Participant)
+
+   * Seeks a demo‑friendly, technically impressive project.
+   * Cares about API integration complexity.
+
+---
+
+## 5. User Stories
+
+* **US1:** As a user, I want to enter my current mood so I can generate a personalized moodboard.
+* **US2:** As a user, I want to see images that match my mood so I feel visually connected.
+* **US3:** As a user, I want an inspirational quote tailored to my emotion.
+* **US4:** As a user, I want a color palette reflecting my mood.
+* **US5:** As a user, I want a Spotify playlist embed for background music.
+* **US6:** As a user, I want to download my moodboard as an image.
+* **US7:** As a user, I want to share a persistent link to my moodboard.
+
+---
+
+## 6. Functional Requirements
+
+| ID  | Requirement                                                                  | Priority |
+| --- | ---------------------------------------------------------------------------- | -------- |
+| FR1 | **Mood Input Form**: Text field + submit button                              | High     |
+| FR2 | **Image Fetch**: Query Unsplash API with mood keywords, display top 4 images | High     |
+| FR3 | **AI Quote**: Call OpenAI GPT endpoint with prompt "Quote about \[mood]"     | High     |
+| FR4 | **Color Palette**: Map mood to 3–5 colors; render swatches                   | Medium   |
+| FR5 | **Spotify Embed**: Display playlist iframe based on pre‑curated mood lists   | Medium   |
+| FR6 | **Download**: Use html2canvas to export board as PNG                         | Medium   |
+| FR7 | **Shareable Link**: Generate a unique URL storing mood + API responses       | Low      |
+| FR8 | **Responsive UI**: Mobile and desktop compatibility                          | High     |
+
+---
+
+## 7. Non‑Functional Requirements
+
+* **Performance**: Page loads under 3 seconds on 4G.
+* **Scalability**: Support up to 1,000 concurrent users.
+* **Reliability**: 99% uptime during hackathon period.
+* **Security**: Sanitize user input; secure API keys via environment variables.
+* **Accessibility**: WCAG AA compliance for colors and navigation.
+
+---
+
+## 8. Technology Stack
+
+| Layer           | Technology                             |
+| --------------- | -------------------------------------- |
+| Frontend        | React (Create React App or Vite)       |
+| Styling         | Tailwind CSS + custom theme            |
+| Image API       | Unsplash Developer API                 |
+| AI Text API     | OpenAI GPT‑3.5 (or GPT‑4 if available) |
+| Music Embed     | Spotify Embed URLs                     |
+| Export Library  | html2canvas                            |
+| Hosting         | Vercel / Netlify                       |
+| Version Control | Git + GitHub                           |
+
+---
+
+## 9. Timeline & Milestones
+
+| Week / Day            | Milestone                                         |
+| --------------------- | ------------------------------------------------- |
+| Day 1 (Kickoff)       | Finalize requirements, set up repo & environment  |
+| Day 2                 | Implement Mood Input & API integration (Unsplash) |
+| Day 3                 | Add AI Quote generation & color palette logic     |
+| Day 4                 | Integrate Spotify embeds & responsive styling     |
+| Day 5                 | Download/share functionality & polish UI          |
+| Day 6                 | Testing, bug fixes, performance tuning            |
+| Day 7 (Hackathon Day) | Final demo, presentation prep, deploy to Vercel   |
+
+---
+
+## 10. Success Metrics & KPIs
+
+1. **Adoption**: ≥ 500 moodboards generated within 48 hours.
+2. **Engagement**: ≥ 100 shares/downloads.
+3. **Technical**: No critical bugs; APIs respond under 1s.
+4. **Judging**: Score ≥ 8/10 for innovation, design, execution.
+
+---
+
+## 11. Risks & Mitigations
+
+| Risk                       | Impact | Mitigation                                  |
+| -------------------------- | ------ | ------------------------------------------- |
+| Unsplash/API rate limits   | Medium | Cache results; fallback images              |
+| OpenAI quota exhaustion    | High   | Provide static quote fallback               |
+| Spotify embed restrictions | Low    | Use static playlist links                   |
+| Time constraints           | High   | Prioritize core features (FR1–FR4)          |
+| UI complexity              | Medium | Use component library (Tailwind + Flowbite) |
+
+---
+
+**End of PRD**
