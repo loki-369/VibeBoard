@@ -3,11 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>VibeBoard AI - Your Mood, Visualized</title>
+    <meta name="description" content="Transform your emotions into beautiful, shareable visual experiences powered by AI and creativity. Analyze mood from photos or text to create personalized moodboards." />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- OpenCV.js for advanced computer vision -->
+    <script async src="https://docs.opencv.org/4.5.0/opencv.js" onload="onOpenCvReady();" onerror="onOpenCvError();"></script>
     <!-- This is a replit script which adds a banner on the top of the page when opened in development mode outside the replit environment -->
     <script type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js"></script>
+    <script>
+      // OpenCV.js loading callbacks
+      window.onOpenCvReady = function() {
+        console.log('OpenCV.js is ready for advanced image processing');
+        window.cvReady = true;
+      };
+      window.onOpenCvError = function() {
+        console.warn('OpenCV.js failed to load, falling back to basic image processing');
+        window.cvReady = false;
+      };
+    </script>
   </body>
 </html>

@@ -138,18 +138,26 @@ async function generateAIQuote(mood: string): Promise<string> {
   }
 }
 
-async function analyzeMoodFromImage(base64Image: string): Promise<string> {
+async function analyzeMoodFromImage(base64Image: string, cvAnalysis?: any): Promise<string> {
   if (!openai.apiKey) {
     throw new Error("OpenAI API key not configured");
   }
 
   try {
+    // Enhance system prompt with computer vision insights if available
+    let systemPrompt = "You are an expert at analyzing emotions and moods from images. Look at facial expressions, body language, colors, lighting, and overall atmosphere. Respond with a single word that best describes the person's mood or the emotional tone of the image. Use words like: happy, sad, excited, peaceful, anxious, motivated, dreamy, nostalgic, creative, angry, etc.";
+    
+    if (cvAnalysis) {
+      const { avgBrightness, contrast, edgeIntensity, faceDetected } = cvAnalysis;
+      systemPrompt += ` Additional context from computer vision: brightness=${avgBrightness.toFixed(0)}, contrast=${contrast.toFixed(2)}, edge_intensity=${edgeIntensity.toFixed(2)}, face_detected=${faceDetected}. Use this to enhance your analysis.`;
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: "You are an expert at analyzing emotions and moods from images. Look at facial expressions, body language, colors, lighting, and overall atmosphere. Respond with a single word that best describes the person's mood or the emotional tone of the image. Use words like: happy, sad, excited, peaceful, anxious, motivated, dreamy, nostalgic, creative, angry, etc.",
+          content: systemPrompt,
         },
         {
           role: "user",
@@ -185,9 +193,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/analyze-mood", async (req, res) => {
     try {
       const validatedData = analyzeMoodFromImageSchema.parse(req.body);
-      const { image } = validatedData;
+      const { image, cvAnalysis } = validatedData;
 
-      const detectedMood = await analyzeMoodFromImage(image);
+      const detectedMood = await analyzeMoodFromImage(image, cvAnalysis);
 
       res.json({ mood: detectedMood });
     } catch (error) {

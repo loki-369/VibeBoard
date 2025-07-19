@@ -28,6 +28,12 @@ export const generateMoodboardSchema = z.object({
 
 export const analyzeMoodFromImageSchema = z.object({
   image: z.string(), // base64 encoded image
+  cvAnalysis: z.object({
+    avgBrightness: z.number(),
+    contrast: z.number(),
+    edgeIntensity: z.number(),
+    faceDetected: z.boolean(),
+  }).optional(), // Optional OpenCV analysis from frontend
 });
 
 export type GenerateMoodboardRequest = z.infer<typeof generateMoodboardSchema>;

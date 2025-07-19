@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type AnalyzeMoodFromImageRequest, type AnalyzeMoodResponse } from "@shared/schema";
+import { opencvProcessor, type FaceAnalysis } from "@/lib/opencv-processor";
 
 interface ImageMoodDetectorProps {
   onMoodDetected: (mood: string) => void;
@@ -12,6 +13,8 @@ interface ImageMoodDetectorProps {
 export default function ImageMoodDetector({ onMoodDetected, disabled }: ImageMoodDetectorProps) {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [cvInsights, setCvInsights] = useState<FaceAnalysis | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -28,28 +31,40 @@ export default function ImageMoodDetector({ onMoodDetected, disabled }: ImageMoo
       });
       setPreview(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Error analyzing mood:", error);
+      let errorMessage = "Failed to analyze your mood from the image. Please try again.";
+      
+      if (error?.message?.includes("request entity too large")) {
+        errorMessage = "Image is too large. Please try a smaller image or let us compress it automatically.";
+      } else if (error?.message?.includes("413")) {
+        errorMessage = "Image file is too large. Please try a smaller image.";
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Analysis Failed",
-        description: error instanceof Error ? error.message : "Failed to analyze your mood from the image. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        // Remove the data:image/jpeg;base64, prefix
-        const base64Data = base64.split(',')[1];
-        resolve(base64Data);
-      };
-      reader.onerror = (error) => reject(error);
-    });
+  const convertToBase64 = async (file: File): Promise<string> => {
+    try {
+      // Use OpenCV processor for enhanced image preprocessing
+      const base64Data = await opencvProcessor.preprocessImageForAI(file);
+      
+      // Additional check for final size
+      if (base64Data.length > 5 * 1024 * 1024) { // 5MB base64 limit
+        throw new Error("Image is still too large after compression. Please try a smaller image.");
+      }
+      
+      return base64Data;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const handleFileUpload = async (file: File) => {
@@ -62,10 +77,10 @@ export default function ImageMoodDetector({ onMoodDetected, disabled }: ImageMoo
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit (will be compressed further)
       toast({
         title: "File Too Large",
-        description: "Please upload an image smaller than 5MB.",
+        description: "Please upload an image smaller than 2MB.",
         variant: "destructive",
       });
       return;
@@ -76,9 +91,47 @@ export default function ImageMoodDetector({ onMoodDetected, disabled }: ImageMoo
       const previewUrl = URL.createObjectURL(file);
       setPreview(previewUrl);
 
-      // Convert to base64 and analyze
-      const base64Data = await convertToBase64(file);
-      analyzeMood.mutate({ image: base64Data });
+      // Perform OpenCV analysis for enhanced mood detection
+      setIsAnalyzing(true);
+      const img = new Image();
+      img.onload = async () => {
+        try {
+          // Analyze facial features with OpenCV
+          const analysis = await opencvProcessor.analyzeFacialFeatures(img);
+          setCvInsights(analysis);
+          console.log('OpenCV Analysis:', analysis);
+          
+          // Get preliminary mood from computer vision
+          const cvMood = opencvProcessor.getMoodFromAnalysis(analysis);
+          
+          // Convert to base64 and send for AI analysis with CV insights
+          const base64Data = await convertToBase64(file);
+          analyzeMood.mutate({ 
+            image: base64Data,
+            cvAnalysis: {
+              avgBrightness: analysis.avgBrightness,
+              contrast: analysis.contrast,
+              edgeIntensity: analysis.edgeIntensity,
+              faceDetected: analysis.faceDetected,
+            }
+          });
+          
+          // Show additional insights to user
+          if (analysis.faceDetected) {
+            toast({
+              title: "Face Detected!",
+              description: `Computer vision suggests: ${cvMood}. Analyzing with AI for best results...`,
+            });
+          }
+        } catch (error) {
+          console.warn('OpenCV analysis failed, proceeding with AI only:', error);
+          const base64Data = await convertToBase64(file);
+          analyzeMood.mutate({ image: base64Data });
+        } finally {
+          setIsAnalyzing(false);
+        }
+      };
+      img.src = previewUrl;
     } catch (error) {
       toast({
         title: "Upload Failed",
@@ -185,7 +238,7 @@ export default function ImageMoodDetector({ onMoodDetected, disabled }: ImageMoo
       </div>
 
       <p className="text-xs text-slate-500 text-center mt-3">
-        Supports JPG, PNG, WebP • Max 5MB
+        Supports JPG, PNG, WebP • Max 2MB • Images auto-resized for optimal processing
       </p>
     </div>
   );
