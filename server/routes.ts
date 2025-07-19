@@ -111,7 +111,7 @@ async function fetchUnsplashImages(mood: string): Promise<string[]> {
 
 async function generateAIQuote(mood: string): Promise<string> {
   if (!openai.apiKey) {
-    throw new Error("OpenAI API key not configured");
+    return getFallbackQuote(mood);
   }
 
   try {
@@ -131,11 +131,60 @@ async function generateAIQuote(mood: string): Promise<string> {
       temperature: 0.8,
     });
 
-    return response.choices[0].message.content?.trim() || `"Every ${mood} moment is a step toward growth and self-discovery."`;
-  } catch (error) {
+    return response.choices[0].message.content?.trim() || getFallbackQuote(mood);
+  } catch (error: any) {
     console.error("Error generating AI quote:", error);
-    return `"Every ${mood} moment is a step toward growth and self-discovery."`;
+    
+    // Check if it's a quota/billing issue
+    if (error?.status === 429 || error?.code === 'insufficient_quota') {
+      console.log("OpenAI quota exceeded, using curated quote collection");
+    }
+    
+    return getFallbackQuote(mood);
   }
+}
+
+function getFallbackQuote(mood: string): string {
+  const quotes: Record<string, string[]> = {
+    happy: [
+      "Happiness is not a destination, it's a way of life.",
+      "Joy shared is joy doubled.",
+      "Every happy moment is a gift to treasure.",
+    ],
+    peaceful: [
+      "In stillness, we find our truest selves.",
+      "Peace begins with a single breath.",
+      "Serenity is the art of letting go.",
+    ],
+    excited: [
+      "Energy and enthusiasm are the keys to endless possibilities.",
+      "Excitement is the spark that ignites great adventures.",
+      "Channel your excitement into purposeful action.",
+    ],
+    motivated: [
+      "Motivation is the fuel that turns dreams into reality.",
+      "Every step forward is progress worth celebrating.",
+      "Your potential is limitless when you believe in yourself.",
+    ],
+    sad: [
+      "Even in sadness, there is beauty in feeling deeply.",
+      "Every storm passes, leaving behind clearer skies.",
+      "Tears water the seeds of tomorrow's growth.",
+    ],
+    anxious: [
+      "Courage isn't the absence of fear, it's feeling fear and moving forward.",
+      "You are stronger than your worries.",
+      "One breath at a time, one step at a time.",
+    ],
+    default: [
+      "Every emotion is a teacher, every moment a lesson.",
+      "You are exactly where you need to be right now.",
+      "Growth happens in the space between comfort and challenge.",
+    ]
+  };
+
+  const moodQuotes = quotes[mood] || quotes.default;
+  return moodQuotes[Math.floor(Math.random() * moodQuotes.length)];
 }
 
 async function analyzeMoodFromImage(base64Image: string, cvAnalysis?: any): Promise<string> {
