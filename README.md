@@ -6,7 +6,7 @@
 ├── shared/              # Shared schemas and types
 └── components.json      # shadcn/ui configuration
 ```
-[![Watch the demo](https://img.youtube.com/vi/[VIDEO_ID](https://youtu.be/HYuw4Iynwg0)/hqdefault.jpg)](https://www.youtube.com/watch?v=[VIDEO_ID](https://youtu.be/HYuw4Iynwg0))
+[![Watch the demo](https://img.youtube.com/vi/[VIDEO_ID](https://youtu.be/HYuw4Iynwg0)/hqdefault.jpg)](https://www.youtube.com/watch?v=HYuw4Iynwg0))
 
 ### Key Technologies
 - **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui, Wouter, TanStack Query
